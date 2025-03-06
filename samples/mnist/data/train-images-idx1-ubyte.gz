@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>mnist/train-images-idx1-ubyte.gz</Key><RequestId>24NTQS422Q26YX1H</RequestId><HostId>93WqC1020zW7cqnWtWboqD+9LjV2K4Rny7JBGu4tJVXGvcxTKJ0NpJuHtSB1d8vxmEddUimKEbk=</HostId></Error>
