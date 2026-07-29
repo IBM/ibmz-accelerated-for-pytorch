@@ -43,21 +43,20 @@ podman build \
     -t "${IMAGE_TAG}" \
     "${SCRIPT_DIR}"
 
-# Create the workspace directory and make it world-writable so ibm-user
-# inside the container can write output files regardless of UID mapping.
-mkdir -p "${WORKSPACE_DIR}"
-chmod 777 "${WORKSPACE_DIR}"
+# Query ibm-user's numeric UID from the built image so podman unshare chown
+# can use it (podman unshare runs inside the user namespace where usernames
+# are not resolved — only numeric UIDs are valid).
+IBM_USER_UID=$(podman run --rm --entrypoint id "${IMAGE_TAG}" -u)
+if [[ -z "${IBM_USER_UID}" ]]; then
+    echo "Error: could not determine ibm-user UID from image ${IMAGE_TAG}" >&2
+    exit 1
+fi
 
-# Remove stale output files from previous runs using podman unshare so the
-# removal runs inside the same UID namespace as the container, allowing it
-# to remove files regardless of which container UID originally created them.
-podman unshare rm -f \
-    "${WORKSPACE_DIR}/test_100k.csv" \
-    "${WORKSPACE_DIR}/test_100k.indices" \
-    "${WORKSPACE_DIR}/ccf_lstm.pt" \
-    "${WORKSPACE_DIR}/ccf_gru.pt" \
-    "${WORKSPACE_DIR}/fitted_mapper_v2_lstm.pkl" \
-    "${WORKSPACE_DIR}/fitted_mapper_v2_gru.pkl"
+# Create the workspace directory and transfer ownership to ibm-user's UID
+# within the rootless UID namespace, so the container can write output files
+# without elevated permissions or world-writable permissions.
+mkdir -p "${WORKSPACE_DIR}"
+podman unshare chown "${IBM_USER_UID}:${IBM_USER_UID}" "${WORKSPACE_DIR}"
 
 # Resolve the dataset location:
 #   1. Explicit path from $2 argument
