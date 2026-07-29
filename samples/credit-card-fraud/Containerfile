@@ -1,0 +1,45 @@
+# IBM Confidential
+# © Copyright IBM Corp. 2026
+
+# Usage:
+#   podman build --build-arg BASE_IMAGE=<image> -t ccf-sample .
+#
+# BASE_IMAGE must be an IBM Z Accelerated for PyTorch production image, e.g.:
+#   icr.io/zai_pytorch/v1.5.0_3q26/prod_pt-2.11_cp-3.12_ubi-10.2:zosdev_pt_v1.5.0_3q26-rc4
+
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+# Switch to root to install system build dependencies
+USER root
+
+RUN dnf install -y \
+        gcc \
+        gcc-c++ \
+        gcc-gfortran \
+        ninja-build \
+        python3-devel \
+        openblas-devel \
+    && dnf clean all
+
+# Switch back to ibm-user for all pip installs
+USER ibm-user
+
+# Install Python build tools (required to build scipy and scikit-learn from source on s390x)
+RUN pip install --no-cache-dir \
+        "meson>=1.5.0" \
+        meson-python \
+        pythran \
+        "pybind11>=2.13.2"
+
+# Make ibm-user's local bin available so meson/pythran are on PATH for the builds below
+ENV PATH="/home/ibm-user/.local/bin:${PATH}"
+
+# Build and install scipy and scikit-learn from source
+RUN pip install --no-cache-dir --no-build-isolation scipy
+RUN pip install --no-cache-dir --no-build-isolation "scikit-learn==1.8.0"
+
+# Install remaining Python dependencies
+# versioneer must be pre-installed before pandas when using --no-build-isolation
+RUN pip install --no-cache-dir "versioneer[toml]"
+RUN pip install --no-cache-dir --no-build-isolation "pandas>=3.0.5" joblib
