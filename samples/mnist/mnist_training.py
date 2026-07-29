@@ -140,6 +140,7 @@ def main():
     device = torch.device('cpu')
 
     mnist_data = MNIST('./data')
+    mnist_data.gz = True
     train_images, train_labels = mnist_data.load_training()
     test_images, test_labels = mnist_data.load_testing()
 
