@@ -54,7 +54,6 @@ fi
 
 # Create the workspace directory and transfer ownership to ibm-user's UID
 # within the rootless UID namespace, so the container can write output files
-# without elevated permissions or world-writable permissions.
 mkdir -p "${WORKSPACE_DIR}"
 podman unshare chown "${IBM_USER_UID}:${IBM_USER_UID}" "${WORKSPACE_DIR}"
 

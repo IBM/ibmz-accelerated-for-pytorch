@@ -68,27 +68,27 @@ First, train and save the model to disk with the `credit_card_fraud_training.py`
 script. Training will take some time.
 
 ```bash
-python3 /sample/credit_card_fraud_training.py
+python /sample/credit_card_fraud_training.py
 ```
 
 This saves the trained model as `ccf_lstm.pt` and the fitted mapper as
 `fitted_mapper_v2_lstm.pkl` in `/workspace`. To train a GRU model instead:
 
 ```bash
-python3 /sample/credit_card_fraud_training.py --rnn-type gru
+python /sample/credit_card_fraud_training.py --rnn-type gru
 ```
 
 Once the model has been trained, run the `credit_card_fraud.py` script to run
 inference against the model.
 
 ```bash
-python3 /sample/credit_card_fraud.py
+python /sample/credit_card_fraud.py
 ```
 
 The script will report the test accuracy. To run inference with the GRU model:
 
 ```bash
-python3 /sample/credit_card_fraud.py --rnn-type gru
+python /sample/credit_card_fraud.py --rnn-type gru
 ```
 
 ## Known Issues
