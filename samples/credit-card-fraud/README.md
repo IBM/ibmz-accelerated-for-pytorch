@@ -21,11 +21,11 @@ behalf:
 
 1. It passes your chosen PyTorch production image as a build argument to
    `Containerfile`.
-2. `Containerfile` temporarily switches to `root` to run the `dnf` installs,
-   then switches back to `ibm-user` before running the `pip` installs.
-3. Once the image is built, `prerequisites.sh` creates a user-owned
-   `workspace/` directory alongside the sample scripts, then starts an
-   interactive shell inside the container with:
+2. `Containerfile` temporarily switches to `root` to run the `dnf` and `pip`
+   installs, then drops back to `ibm-user` as the runtime user.
+3. Once the image is built, `prerequisites.sh` creates a `workspace/`
+   directory alongside the sample scripts, then starts an interactive shell
+   inside the container with:
    - The sample scripts mounted read-only at `/sample`
    - The `workspace/` directory mounted at `/workspace` (writable)
 
@@ -39,7 +39,7 @@ IBM Z Accelerated for PyTorch production image as the argument:
 For example:
 
 ```bash
-./prerequisites.sh icr.io/zai_pytorch/v1.5.0_3q26/prod_pt-2.11_cp-3.12_ubi-10.2:zosdev_pt_v1.5.0_3q26-rc4 /data/card_transaction.v1.csv
+./prerequisites.sh icr.io/ibmz/ibmz-accelerated-for-pytorch:1.5.0 /data/card_transaction.v1.csv
 ```
 
 This builds a local image tagged `ccf-sample:latest` and drops you into an

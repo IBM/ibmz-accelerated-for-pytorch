@@ -5,7 +5,7 @@
 #   ./prerequisites.sh <base-image> [/path/to/card_transaction.v1.csv]
 #
 # <base-image> must be an IBM Z Accelerated for PyTorch production image, e.g.:
-#   icr.io/zai_pytorch/v1.5.0_3q26/prod_pt-2.11_cp-3.12_ubi-10.2:zosdev_pt_v1.5.0_3q26-rc4
+#   icr.io/ibmz/ibmz-accelerated-for-pytorch:1.5.0
 #
 # The optional second argument is the path to card_transaction.v1.csv. If
 # provided, the file is copied into the workspace directory automatically.
@@ -28,8 +28,8 @@ fi
 CSV_PATH="${2:-}"
 CSV_FILENAME="card_transaction.v1.csv"
 
-if ! command -v podman &>/dev/null; then
-    echo "Error: podman not found. Run this script on the host, not inside a container." >&2
+if ! command -v docker &>/dev/null; then
+    echo "Error: docker not found. Run this script on the host, not inside a container." >&2
     exit 1
 fi
 
@@ -38,24 +38,13 @@ WORKSPACE_DIR="${SCRIPT_DIR}/workspace"
 IMAGE_TAG="ccf-sample:latest"
 
 echo "Building sample image from ${BASE_IMAGE} ..."
-podman build \
+docker build \
     --build-arg BASE_IMAGE="${BASE_IMAGE}" \
     -t "${IMAGE_TAG}" \
     "${SCRIPT_DIR}"
 
-# Query ibm-user's numeric UID from the built image so podman unshare chown
-# can use it (podman unshare runs inside the user namespace where usernames
-# are not resolved — only numeric UIDs are valid).
-IBM_USER_UID=$(podman run --rm --entrypoint id "${IMAGE_TAG}" -u)
-if [[ -z "${IBM_USER_UID}" ]]; then
-    echo "Error: could not determine ibm-user UID from image ${IMAGE_TAG}" >&2
-    exit 1
-fi
-
-# Create the workspace directory and transfer ownership to ibm-user's UID
-# within the rootless UID namespace, so the container can write output files
+# Create the workspace directory
 mkdir -p "${WORKSPACE_DIR}"
-podman unshare chown "${IBM_USER_UID}:${IBM_USER_UID}" "${WORKSPACE_DIR}"
 
 # Resolve the dataset location:
 #   1. Explicit path from $2 argument
@@ -91,8 +80,7 @@ echo "Inside the container, run scripts from /workspace, e.g.:"
 echo "  python3 /sample/credit_card_fraud_training.py"
 echo ""
 
-podman run -it --rm \
-    --device /dev/vfio \
+docker run -it --rm \
     -v "${SCRIPT_DIR}":/sample:ro,z \
     -v "${WORKSPACE_DIR}":/workspace:z \
     -w /workspace \
