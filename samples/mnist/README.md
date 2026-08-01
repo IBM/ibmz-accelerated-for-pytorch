@@ -18,7 +18,6 @@ current version of the container image.
 First, create a workspace directory and start an interactive container shell:
 
 ```bash
-cd samples/mnist
 mkdir -p workspace
 
 docker run -it --rm \
