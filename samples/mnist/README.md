@@ -21,7 +21,7 @@ First, create a workspace directory and start an interactive container shell:
 mkdir -p workspace
 
 docker run -it --rm \
-    -v "$(pwd)":/sample:ro,z \
+    -v "$(pwd)":/scripts:ro,z \
     -v "$(pwd)/workspace":/workspace:z \
     -w /workspace \
     icr.io/ibmz/ibmz-accelerated-for-pytorch:X.X.X bash
@@ -41,7 +41,7 @@ Train the model and save it to disk. You can specify the number of epochs
 with `--epochs`.
 
 ```bash
-python /sample/mnist_training.py --epochs 2 --save-model
+python /scripts/mnist_training.py --epochs 2 --save-model
 ```
 
 ## Inference on NNPA Device
@@ -49,7 +49,7 @@ python /sample/mnist_training.py --epochs 2 --save-model
 After training with `--save-model`, run inference on the NNPA device:
 
 ```bash
-python /sample/mnist_infer.py
+python /scripts/mnist_infer.py
 ```
 
 ## Inference on CPU
@@ -57,7 +57,7 @@ python /sample/mnist_infer.py
 To run inference on the CPU instead, pass `--no-nnpa`:
 
 ```bash
-python /sample/mnist_infer.py --no-nnpa
+python /scripts/mnist_infer.py --no-nnpa
 ```
 
 ## Known Issues
