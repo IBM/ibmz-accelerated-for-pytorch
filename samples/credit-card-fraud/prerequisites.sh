@@ -37,14 +37,36 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE_DIR="${SCRIPT_DIR}/workspace"
 IMAGE_TAG="ccf-sample:latest"
 
+# Under rootless podman (including when invoked via a docker alias), use the
+# cgroupfs cgroup manager to avoid systemd unit errors in SSH sessions, and
+# remap workspace ownership into the container's UID namespace.
+# Neither applies to real Docker (no podman present).
+PODMAN_EXTRA_FLAGS=()
+if command -v podman &>/dev/null; then
+    PODMAN_EXTRA_FLAGS=(--cgroup-manager=cgroupfs)
+fi
+
 echo "Building sample image from ${BASE_IMAGE} ..."
 docker build \
+    "${PODMAN_EXTRA_FLAGS[@]}" \
     --build-arg BASE_IMAGE="${BASE_IMAGE}" \
     -t "${IMAGE_TAG}" \
     "${SCRIPT_DIR}"
 
 # Create the workspace directory
 mkdir -p "${WORKSPACE_DIR}"
+
+if command -v podman &>/dev/null; then
+    # Query ibm-user's numeric UID from the built image so podman unshare chown
+    # can use it (podman unshare runs inside the user namespace where usernames
+    # are not resolved — only numeric UIDs are valid).
+    IBM_USER_UID=$(docker run --rm "${PODMAN_EXTRA_FLAGS[@]}" --entrypoint id "${IMAGE_TAG}" -u)
+    if [[ -z "${IBM_USER_UID}" ]]; then
+        echo "Error: could not determine ibm-user UID from image ${IMAGE_TAG}" >&2
+        exit 1
+    fi
+    podman unshare chown "${IBM_USER_UID}:${IBM_USER_UID}" "${WORKSPACE_DIR}"
+fi
 
 # Resolve the dataset location:
 #   1. Explicit path from $2 argument
@@ -81,6 +103,7 @@ echo "  python3 /sample/credit_card_fraud_training.py"
 echo ""
 
 docker run -it --rm \
+    "${PODMAN_EXTRA_FLAGS[@]}" \
     -v "${SCRIPT_DIR}":/sample:ro,z \
     -v "${WORKSPACE_DIR}":/workspace:z \
     -w /workspace \

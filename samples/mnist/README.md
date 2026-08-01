@@ -1,39 +1,66 @@
 <!-- markdownlint-disable MD033 -->
 
-# Sample Prerequisites
+# MNIST Sample
 
-This sample uses the `python-mnist` package, which can be installed using pip.
+This sample uses the `python-mnist` package to load the MNIST data set,
+trains a model on CPU, then runs inference on the NNPA device. It runs
+directly in the base container — no `prerequisites.sh` is needed.
+
+> If you are using rootless podman, see the
+> [Running with podman](../README.md#running-with-podman) section in the
+> top-level samples README before proceeding.
+
+## Running the Sample
+
+Run these commands from the **host** machine. Replace `X.X.X` with the
+current version of the container image.
+
+First, create a workspace directory and start an interactive container shell:
+
+```bash
+cd samples/mnist
+mkdir -p workspace
+
+docker run -it --rm \
+    -v "$(pwd)":/sample:ro,z \
+    -v "$(pwd)/workspace":/workspace:z \
+    -w /workspace \
+    icr.io/ibmz/ibmz-accelerated-for-pytorch:X.X.X bash
+```
+
+## Prerequisites
+
+Inside the container, install the `python-mnist` package:
 
 ```bash
 pip install python-mnist
 ```
 
-# Training on CPU
+## Training on CPU
 
-Training is performed on the CPU.
-
-- You can specify the number of epoch using the `--epochs` arg.
-- You can save the model for inference by passing `--save-model`.
+Train the model and save it to disk. You can specify the number of epochs
+with `--epochs`.
 
 ```bash
-python mnist_training.py --epochs 2 --save-model
+python /sample/mnist_training.py --epochs 2 --save-model
 ```
 
-# Inference on NNPA Device
+## Inference on NNPA Device
 
-After running training and saving a model by passing `--save-model` to
-`mnist_training.py`, inference can be ran against the saved model.
-
-Inference is performed on the NNPA device by default.
+After training with `--save-model`, run inference on the NNPA device:
 
 ```bash
-python mnist_infer.py
+python /sample/mnist_infer.py
 ```
 
-# Inference on CPU
+## Inference on CPU
 
-Inference can be performed on the CPU by passing `--no-nnpa`.
+To run inference on the CPU instead, pass `--no-nnpa`:
 
 ```bash
-python mnist_infer.py --no-nnpa
+python /sample/mnist_infer.py --no-nnpa
 ```
+
+## Known Issues
+
+There are no known open issues with this sample.

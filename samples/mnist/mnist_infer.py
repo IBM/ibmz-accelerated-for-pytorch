@@ -120,6 +120,7 @@ def main():
         device = torch.device('cpu')
 
     mnist_data = MNIST('./data')
+    mnist_data.gz = True
     images, labels = mnist_data.load_testing()
 
     dataset = ImageDataset(images, labels, normalize=True)
