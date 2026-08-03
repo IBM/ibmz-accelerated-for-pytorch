@@ -23,41 +23,45 @@ behalf:
    `Containerfile`.
 2. `Containerfile` temporarily switches to `root` to run the `dnf` and `pip`
    installs, then drops back to `ibm-user` as the runtime user.
-3. Once the image is built, `prerequisites.sh` creates a `workspace/`
-   directory alongside the sample scripts, then starts an interactive shell
-   inside the container with:
-   - The sample scripts mounted read-only at `/scripts`
-   - The `workspace/` directory mounted at `/workspace` (writable)
+3. Once the image is built, `prerequisites.sh` starts an interactive shell
+   inside the container with a named volume mounted at `/workspace` (writable).
 
 Run the script on the **host** (not from inside a container), passing your
 IBM Z Accelerated for PyTorch production image as the argument:
 
 ```bash
-./prerequisites.sh <base-image> [/path/to/card_transaction.v1.csv]
+./prerequisites.sh <base-image>
 ```
 
 For example:
 
 ```bash
-./prerequisites.sh icr.io/ibmz/ibmz-accelerated-for-pytorch:1.5.0 /data/card_transaction.v1.csv
+./prerequisites.sh icr.io/ibmz/ibmz-accelerated-for-pytorch:1.5.0
 ```
 
-This builds a local image tagged `ccf-sample:latest` and drops you into an
-interactive shell at `/workspace` inside the container. All output files
-(model checkpoints, test data, etc.) are written there.
+This builds a local image and prints the generated image tag (e.g.
+`pytorch-ccf-sample:20250714-143022`) along with the `docker run` command to start
+the container. All output files (model checkpoints, test data, etc.) are
+written to `/workspace` inside the container.
 
-## Obtaining the Data Set
+## Copying Scripts and the Data Set into the Container
 
-Download the Credit Card Fraud data set. The script will locate
-`card_transaction.v1.csv` automatically in the following order:
+Once the container is running, open a second terminal on the host and use
+`docker cp` to copy the sample scripts and data set into the container:
 
-1. The path passed as the second argument to `prerequisites.sh`
-2. The `credit-card-fraud/` sample directory (if you placed it there)
-3. The `workspace/` subdirectory (if you placed it there from a previous run)
+```bash
+# Find the running container ID
+docker ps
 
-If the file is not found in any of these locations, the script will print a
-warning and you must copy it into `workspace/` manually before running the
-sample scripts inside the container.
+# Copy the sample scripts
+docker cp credit_card_fraud_training.py <container-id>:/workspace/
+docker cp credit_card_fraud.py <container-id>:/workspace/
+
+# Copy the data set
+docker cp /path/to/card_transaction.v1.csv <container-id>:/workspace/
+```
+
+Then return to the container shell to run the sample.
 
 ## Running the Sample
 
@@ -68,27 +72,27 @@ First, train and save the model to disk with the `credit_card_fraud_training.py`
 script. Training will take some time.
 
 ```bash
-python /scripts/credit_card_fraud_training.py
+python credit_card_fraud_training.py
 ```
 
 This saves the trained model as `ccf_lstm.pt` and the fitted mapper as
 `fitted_mapper_v2_lstm.pkl` in `/workspace`. To train a GRU model instead:
 
 ```bash
-python /scripts/credit_card_fraud_training.py --rnn-type gru
+python credit_card_fraud_training.py --rnn-type gru
 ```
 
 Once the model has been trained, run the `credit_card_fraud.py` script to run
 inference against the model.
 
 ```bash
-python /scripts/credit_card_fraud.py
+python credit_card_fraud.py
 ```
 
 The script will report the test accuracy. To run inference with the GRU model:
 
 ```bash
-python /scripts/credit_card_fraud.py --rnn-type gru
+python credit_card_fraud.py --rnn-type gru
 ```
 
 ## Known Issues
