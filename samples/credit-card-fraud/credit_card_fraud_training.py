@@ -114,13 +114,15 @@ def create_training_sets(csv_path: Path):
     tot_length = index_list.shape[0]
     train_length = tot_length // 2
     validate_length = (tot_length - train_length) * 3 // 5
-    print(tot_length, train_length, validate_length)
+    test_length = tot_length - train_length - validate_length
+    print(tot_length, train_length, validate_length, test_length)
 
     np.random.seed(1111)
     train_indices = np.random.choice(index_list, train_length, replace=False)
     tv_list = np.setdiff1d(index_list, train_indices)
     validate_indices = np.random.choice(tv_list, validate_length, replace=False)
     test_indices = np.setdiff1d(tv_list, validate_indices)
+    print(train_indices, validate_indices, test_indices)
 
     create_test_sample(x_original, test_indices[:10000])
 
