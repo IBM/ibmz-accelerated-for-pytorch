@@ -58,8 +58,8 @@ def main(
     main
     """
 
-    x_original = pd.read_csv('test_100k.csv', index_col='Index')
-    indices = np.loadtxt('test_100k.indices').astype(np.int64)
+    x_original = pd.read_csv('test_10k.csv', index_col='Index')
+    indices = np.loadtxt('test_10k.indices').astype(np.int64)
 
     mapper_path = f'fitted_mapper_v2_{rnn_type}.pkl'
     print(f'Loading mapper from {mapper_path} . . .')

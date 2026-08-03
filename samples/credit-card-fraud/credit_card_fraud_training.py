@@ -87,10 +87,10 @@ def create_test_sample(df: pd.DataFrame, indices: npt.NDArray[np.int64]):
     for i in range(SEQ_LENGTH):
         index_array[:, i] = indices + 1 - SEQ_LENGTH + i
     uniques = np.unique(index_array.flatten())
-    Path('test_100k.csv').unlink(missing_ok=True)
-    df.loc[uniques].to_csv('test_100k.csv', index_label='Index')
-    Path('test_100k.indices').unlink(missing_ok=True)
-    np.savetxt('test_100k.indices', indices.astype(np.int64), fmt='%d')
+    Path('test_10k.csv').unlink(missing_ok=True)
+    df.loc[uniques].to_csv('test_10k.csv', index_label='Index')
+    Path('test_10k.indices').unlink(missing_ok=True)
+    np.savetxt('test_10k.indices', indices.astype(np.int64), fmt='%d')
 
 
 def create_training_sets(csv_path: Path):
