@@ -95,6 +95,15 @@ The script will report the test accuracy. To run inference with the GRU model:
 python credit_card_fraud.py --rnn-type gru
 ```
 
+## Cleanup
+
+When you are finished with the sample, remove the image and workspace volume:
+
+```bash
+docker rmi pytorch-ccf-sample:<timestamp>
+docker volume rm pytorch-ccf-workspace
+```
+
 ## Known Issues
 
 There are no known open issues with this sample.
