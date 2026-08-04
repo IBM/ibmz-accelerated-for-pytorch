@@ -154,26 +154,15 @@ usage outside the container, or with other containers.
    of the container and into your host file system.
 3. Use bind mounts with the `docker run -v` or `docker run --mount` parameter.
    This will mount a host directory into the container, and any existing data or
-   code cna be used inside the container, and any data or code updated or
+   code can be used inside the container, and any data or code updated or
    created in the directory will be persisted in the host directory for later
-   reuse.By default,
-
-   - Note that under podman this can result in some permission and ownership
-     issues. These issues are are easily fixed with
-     `podman unshare chown -R root:root {dir}` on the host. This changes the
-     owner back to your user id (as `root` in that command actually refers to
-     your user id and primary group and not the host root user).
+   reuse.
 
 4. Use [volumes](https://docs.docker.com/storage/volumes/) with the
    `docker run --mount` parameter. Volumes isolate the data from the host and
-   can be easily shared between containers.
-
-   - Under podman, you can easily populate a volume from a tarball on the host,
-     or export a volume to a tarball with the
-     [`podman import`](https://docs.podman.io/en/latest/markdown/podman-volume-import.1.html)
-     and
-     [`podman export`](https://docs.podman.io/en/latest/markdown/podman-volume-export.1.html)
-     commands, respectively.
+   can be easily shared between containers. Named volumes are managed entirely
+   by the container runtime and are not subject to user namespace ownership
+   issues under rootless podman.
 
 Use the technique that works best for your application to persist and share your
 data.
@@ -181,10 +170,9 @@ data.
 You may also save the changes you made in a container by using
 [docker commit](https://docs.docker.com/engine/reference/commandline/commit/) to
 save the running container as an image. The entire state of the container,
-software installed, etc will be retained. But note that directories and files
-made available to the container via bind mounts will not be saved as part of the
-container image. However you can use `-v` to bind mount that data again when
-running the new container image.
+software installed, etc will be retained. But note that named volumes are not
+saved as part of the container image — you can re-attach the same volume by
+name when running the new container image.
 
 <!--
 Data that Tensorflow downloads into the container will be stored under the
