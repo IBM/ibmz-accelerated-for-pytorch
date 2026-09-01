@@ -82,7 +82,7 @@ python /scripts/credit_card_fraud_training.py --rnn-type gru
 You can specify the number of epochs with `--epochs` (default: `20`):
 
 ```bash
-python /scripts/credit_card_fraud_training.py --epochs 5
+python /scripts/credit_card_fraud_training.py --epochs 2
 ```
 
 Once the model has been trained, run the `credit_card_fraud.py` script to run
