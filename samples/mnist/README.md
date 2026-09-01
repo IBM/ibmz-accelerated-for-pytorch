@@ -15,14 +15,13 @@ directly in the base container — no `prerequisites.sh` is needed.
 Run these commands from the **host** machine. Replace `X.X.X` with the
 current version of the container image.
 
-First, create a workspace directory and start an interactive container shell:
+First, start an interactive container shell with a named volume for the
+workspace:
 
 ```bash
-mkdir -p workspace
-
 docker run -it --rm \
     -v "$(pwd)":/scripts:ro,z \
-    -v "$(pwd)/workspace":/workspace:z \
+    -v mnist-workspace:/workspace \
     -w /workspace \
     icr.io/ibmz/ibmz-accelerated-for-pytorch:X.X.X bash
 ```
@@ -35,16 +34,32 @@ Inside the container, install the `python-mnist` package:
 pip install python-mnist
 ```
 
-## Training on CPU
+## Copying the Data Set into the Workspace
 
-Train the model and save it to disk. You can specify the number of epochs
-with `--epochs`.
+The training script looks for the MNIST data files in a `./data` sub-directory
+of the current working directory (`/workspace`). Open a **second terminal on
+the host** and copy the bundled data directory into the running container:
+
+```bash
+# Find the running container ID
+docker ps
+
+# Copy the data directory
+docker cp data/ <container-id>:/workspace/
+```
+
+Then return to the container shell before running training.
+
+## Training
+
+Training always runs on CPU. Train the model and save it to disk. You can
+specify the number of epochs with `--epochs`.
 
 ```bash
 python /scripts/mnist_training.py --epochs 2 --save-model
 ```
 
-## Inference on NNPA Device
+## Inference on NNPA
 
 After training with `--save-model`, run inference on the NNPA device:
 
@@ -58,6 +73,22 @@ To run inference on the CPU instead, pass `--no-nnpa`:
 
 ```bash
 python /scripts/mnist_infer.py --no-nnpa
+```
+
+## Cleanup
+
+When you are finished with the sample, remove the stopped container and the
+workspace volume:
+
+```bash
+docker container prune -f
+docker volume rm mnist-workspace
+```
+
+If you are using rootless Podman, verify no processes are left behind:
+
+```bash
+top -u $(whoami)
 ```
 
 ## Known Issues
