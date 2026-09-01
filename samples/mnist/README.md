@@ -53,7 +53,7 @@ Then return to the container shell before running training.
 ## Training
 
 Training always runs on CPU. Train the model and save it to disk. You can
-specify the number of epochs with `--epochs`.
+specify the number of epochs with `--epochs` (default: `14`):
 
 ```bash
 python /scripts/mnist_training.py --epochs 2 --save-model

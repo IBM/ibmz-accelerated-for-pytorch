@@ -79,6 +79,12 @@ This saves the trained model as `ccf_lstm.pt` and the fitted mapper as
 python /scripts/credit_card_fraud_training.py --rnn-type gru
 ```
 
+You can specify the number of epochs with `--epochs` (default: `20`):
+
+```bash
+python /scripts/credit_card_fraud_training.py --epochs 5
+```
+
 Once the model has been trained, run the `credit_card_fraud.py` script to run
 inference against the model.
 
