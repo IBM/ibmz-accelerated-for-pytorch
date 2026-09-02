@@ -85,12 +85,6 @@ docker container prune -f
 docker volume rm mnist-workspace
 ```
 
-If you are using rootless Podman, verify no processes are left behind:
-
-```bash
-top -u $(whoami)
-```
-
 ## Known Issues
 
 There are no known open issues with this sample.
