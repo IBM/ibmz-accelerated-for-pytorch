@@ -23,8 +23,10 @@ behalf:
    `Containerfile`.
 2. `Containerfile` temporarily switches to `root` to run the `dnf` and `pip`
    installs, then drops back to `ibm-user` as the runtime user.
-3. Once the image is built, `prerequisites.sh` starts an interactive shell
-   inside the container with a named volume mounted at `/workspace` (writable).
+3. Once the image is built, `prerequisites.sh` prints the generated image tag
+   and the `docker run` command to start the container. The sample scripts are
+   mounted read-only at `/scripts` and the named volume is mounted at
+   `/workspace` for all output files.
 
 Run the script on the **host** (not from inside a container), passing your
 IBM Z Accelerated for PyTorch production image as the argument:
@@ -40,22 +42,17 @@ For example:
 ```
 
 This builds a local image and prints the generated image tag (e.g.
-`pytorch-ccf-sample:20250714-143022`) along with the `docker run` command to start
-the container. All output files (model checkpoints, test data, etc.) are
-written to `/workspace` inside the container.
+`pytorch-ccf-sample:20250714-143022`) along with the `docker run` command to
+start the container.
 
-## Copying Scripts and the Data Set into the Container
+## Copying the Data Set into the Container
 
 Once the container is running, open a second terminal on the host and use
-`docker cp` to copy the sample scripts and data set into the container:
+`docker cp` to copy the data set into the container:
 
 ```bash
 # Find the running container ID
 docker ps
-
-# Copy the sample scripts
-docker cp credit_card_fraud_training.py <container-id>:/workspace/
-docker cp credit_card_fraud.py <container-id>:/workspace/
 
 # Copy the data set
 docker cp /path/to/card_transaction.v1.csv <container-id>:/workspace/
@@ -72,27 +69,33 @@ First, train and save the model to disk with the `credit_card_fraud_training.py`
 script. Training will take some time.
 
 ```bash
-python credit_card_fraud_training.py
+python /scripts/credit_card_fraud_training.py
 ```
 
 This saves the trained model as `ccf_lstm.pt` and the fitted mapper as
 `fitted_mapper_v2_lstm.pkl` in `/workspace`. To train a GRU model instead:
 
 ```bash
-python credit_card_fraud_training.py --rnn-type gru
+python /scripts/credit_card_fraud_training.py --rnn-type gru
+```
+
+You can specify the number of epochs with `--epochs` (default: `20`):
+
+```bash
+python /scripts/credit_card_fraud_training.py --epochs 2
 ```
 
 Once the model has been trained, run the `credit_card_fraud.py` script to run
 inference against the model.
 
 ```bash
-python credit_card_fraud.py
+python /scripts/credit_card_fraud.py
 ```
 
 The script will report the test accuracy. To run inference with the GRU model:
 
 ```bash
-python credit_card_fraud.py --rnn-type gru
+python /scripts/credit_card_fraud.py --rnn-type gru
 ```
 
 ## Cleanup
@@ -104,12 +107,6 @@ volume:
 docker container prune -f
 docker rmi pytorch-ccf-sample:<timestamp>
 docker volume rm pytorch-ccf-workspace
-```
-
-If you are using rootless Podman, verify no processes are left behind:
-
-```bash
-top -u $(whoami)
 ```
 
 ## Known Issues

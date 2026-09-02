@@ -207,7 +207,11 @@ class RNNModel(torch.nn.Module):
         return self.act(self.fc1(out))
 
 
-def main(rnn_type: str = 'lstm', batch_size: int = 2048):
+def main(
+    rnn_type: str = 'lstm',
+    batch_size: int = 2048,
+    epochs: int = 20,
+):
     """
     main
     """
@@ -283,7 +287,7 @@ def main(rnn_type: str = 'lstm', batch_size: int = 2048):
     loss_criterion = torch.nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters())
 
-    for epoch in range(20):
+    for epoch in range(epochs):
         for batch, (data, targets) in enumerate(train_dataloader):
             score = model(data)
             loss = loss_criterion(score, targets)
@@ -314,6 +318,12 @@ if __name__ == '__main__':
         default=2048,
         help='Batch size for training (default: 2048)',
     )
+    parser.add_argument(
+        '--epochs',
+        type=int,
+        default=20,
+        help='Number of training epochs (default: 20)',
+    )
     args = parser.parse_args()
 
-    main(args.rnn_type, args.batch_size)
+    main(args.rnn_type, args.batch_size, args.epochs)
